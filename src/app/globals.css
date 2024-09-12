@@ -25,3 +25,21 @@ body {
     text-wrap: balance;
   }
 }
+
+/* Old-school clock styles */
+@font-face {
+  font-family: 'Digital';
+  src: url('/fonts/digital-7.ttf') format('truetype');
+}
+
+.oldschool-clock {
+  background-color: #000;
+  border: 2px solid #333;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+.oldschool-digits {
+  font-family: 'Digital', monospace;
+  color: #00ff00;
+  text-shadow: 0 0 5px #00ff00;
+}
