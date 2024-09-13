@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@headlessui/react": "^2.1.8",
+    "@heroicons/react": "^2.1.5",
     "browser-notifications": "^0.0.3",
     "howler": "^2.2.4",
     "localforage": "^1.10.0",
