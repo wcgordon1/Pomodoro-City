@@ -91,19 +91,19 @@ export default function AudioControl({ isRunning, timerEnded }) {
 
   return (
     <div className="flex flex-col items-center space-y-4">
-      <div className="flex justify-center space-x-4">
-        <div className="p-[6px] rounded-lg bg-gradient-to-t from-purple-500 to-cyan-500">
-          <BackwardIcon className="h-6 w-6 text-white cursor-pointer" onClick={handlePreviousTrack} />
+      <div className="flex justify-center space-x-8">
+        <div className="p-[4px] rounded-lg bg-gradient-to-t from-blue-500 to-cyan-500">
+          <BackwardIcon className="h-6 w-6 text-sky-100 cursor-pointer" onClick={handlePreviousTrack} />
         </div>
-        <div className="p-[6px] rounded-lg bg-gradient-to-t from-purple-500 to-cyan-500">
+        <div className="p-[4px] rounded-lg bg-gradient-to-t from-blue-500 to-cyan-500">
           {isPlaying ? (
-            <PauseIcon className="h-6 w-6 text-white cursor-pointer" onClick={handlePause} />
+            <PauseIcon className="h-6 w-6 text-sky-100 cursor-pointer" onClick={handlePause} />
           ) : (
-            <PlayIcon className="h-6 w-6 text-white cursor-pointer" onClick={handlePlay} />
+            <PlayIcon className="h-6 w-6 text-sky-100 cursor-pointer" onClick={handlePlay} />
           )}
         </div>
-        <div className="p-[6px] rounded-lg bg-gradient-to-t from-purple-500 to-cyan-500">
-          <ForwardIcon className="h-6 w-6 text-white cursor-pointer" onClick={handleNextTrack} />
+        <div className="p-[4px] rounded-lg bg-gradient-to-t from-blue-500 to-cyan-500">
+          <ForwardIcon className="h-6 w-6 text-sky-100 cursor-pointer" onClick={handleNextTrack} />
         </div>
       </div>
     </div>

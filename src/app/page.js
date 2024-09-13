@@ -14,6 +14,11 @@ const tingSound = new Howl({
   volume: 1.0,
 });
 
+const startSound = new Howl({
+  src: ['/sounds/start.mp3'],
+  volume: 1.0,
+});
+
 export default function Pomodoro() {
   const [time, setTime] = useState(POMODORO_TIME);
   const [isRunning, setIsRunning] = useState(false);
@@ -23,34 +28,23 @@ export default function Pomodoro() {
 
   useEffect(() => {
     if ("Notification" in window) {
-      setNotificationPermission(Notification.permission);
+      checkAndRequestNotificationPermission();
     }
   }, []);
 
-  const requestNotificationPermission = async () => {
-    if ("Notification" in window) {
-      try {
-        const permission = await Notification.requestPermission();
-        setNotificationPermission(permission);
-        console.log("Notification permission:", permission);
-        return permission;
-      } catch (error) {
-        console.error("Error requesting notification permission:", error);
-        return 'denied';
-      }
+  const checkAndRequestNotificationPermission = async () => {
+    if (Notification.permission === 'default') {
+      const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
+    } else {
+      setNotificationPermission(Notification.permission);
     }
-    return 'unsupported';
   };
 
-  const sendNotification = async (type = timerType) => {
-    let permission = notificationPermission;
-    if (permission === 'default') {
-      permission = await requestNotificationPermission();
-    }
-
-    if (permission === "granted") {
+  const sendNotification = () => {
+    if (notificationPermission === "granted") {
       let message;
-      switch (type) {
+      switch (timerType) {
         case 'pomodoro':
           message = "Pomodoro 25 Minutes is up! Whoo!";
           break;
@@ -64,24 +58,6 @@ export default function Pomodoro() {
           message = "Timer ended!";
       }
       new Notification("Pomodoro Timer", { body: message });
-    } else if (permission === "denied") {
-      console.log("Notification permission denied");
-      // You might want to show a message to the user here
-    }
-  };
-
-  const sendTestNotification = async () => {
-    let permission = notificationPermission;
-    if (permission === 'default') {
-      permission = await requestNotificationPermission();
-    }
-
-    if (permission === "granted") {
-      new Notification("Test Notification", { body: "testing 854-4514" });
-      console.log("Test notification sent");
-    } else if (permission === "denied") {
-      console.log("Notification permission denied");
-      alert("Notification permission denied. Please enable notifications in your browser settings.");
     }
   };
 
@@ -105,9 +81,33 @@ export default function Pomodoro() {
     return `${minutes < 10 ? '0' : ''}${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
   };
 
-  const resetTimer = (type) => {
+  const toggleTimer = () => {
+    if (!isRunning) {
+      if (timerType !== 'pomodoro') {
+        startSound.play();
+      }
+    }
+    setIsRunning((prevIsRunning) => !prevIsRunning);
+  };
+
+  const resetTimer = () => {
     setIsRunning(false);
+    switch (timerType) {
+      case 'pomodoro':
+        setTime(POMODORO_TIME);
+        break;
+      case 'shortBreak':
+        setTime(SHORT_BREAK_TIME);
+        break;
+      case 'longBreak':
+        setTime(LONG_BREAK_TIME);
+        break;
+    }
+  };
+
+  const changeTimerType = (type) => {
     setTimerType(type);
+    setIsRunning(false);
     switch (type) {
       case 'pomodoro':
         setTime(POMODORO_TIME);
@@ -121,35 +121,50 @@ export default function Pomodoro() {
     }
   };
 
+  useEffect(() => {
+    let interval;
+    if (isRunning && time > 0) {
+      interval = setInterval(() => {
+        setTime((prevTime) => prevTime - 1);
+      }, 1000);
+    } else if (time === 0) {
+      setIsRunning(false);
+      setTimerEnded(true);
+      playTingSound();
+      sendNotification();
+    }
+    return () => clearInterval(interval);
+  }, [isRunning, time]);
+
   return (
     <div className="flex flex-col items-center min-h-screen bg-cover bg-center py-8" style={{ backgroundImage: "url('/images/loggg.webp')" }}>
       {/* Timer at the top */}
-      <div className="bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg rounded-xl p-1 shadow-lg mb-8 w-full max-w-[190px] sm:max-w-[350px] mt-[30px]">
-        <div className="oldschool-clock bg-black p-4 rounded-lg flex justify-center items-center">
-          <div className="text-5xl sm:text-8xl font-mono text-white-400 oldschool-digits">
+      <div className="bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg rounded-xl p-2 shadow-lg mb-6 w-full max-w-[240px] sm:max-w-[350px] mt-[60px]">
+        <div className="oldschool-clock bg-black bg-opacity-20 p-4 rounded-lg flex justify-center items-center">
+          <div className="text-6xl sm:text-8xl font-mono text-white-400 oldschool-digits">
             {formatTime(time)}
           </div>
         </div>
       </div>
 
       {/* Timer type selection */}
-      <div className="bg-white bg-opacity-50 backdrop-filter backdrop-blur-sm rounded-3xl px-[6px] py-[6px] max-w-[300px] w-full mb-4">
+      <div className="bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm rounded-2xl px-[10px] py-[8px] max-w-[370px] w-full mb-2">
         <div className="flex justify-between items-center text-white text-sm font-bold">
           <div 
-            className={`p-2 rounded cursor-pointer ${timerType === 'pomodoro' ? 'bg-indigo-800 bg-opacity-70 rounded-2xl' : ''}`}
-            onClick={() => resetTimer('pomodoro')}
+            className={`px-4 py-2 rounded cursor-pointer ${timerType === 'pomodoro' ? 'bg-sky-400 rounded-xl' : ''}`}
+            onClick={() => changeTimerType('pomodoro')}
           >
             Pomodoro
           </div>
           <div 
-            className={`p-2 rounded cursor-pointer ${timerType === 'shortBreak' ? 'bg-cyan-500 bg-opacity-70 rounded-2xl' : ''}`}
-            onClick={() => resetTimer('shortBreak')}
+            className={`px-4 py-2 rounded cursor-pointer ${timerType === 'shortBreak' ? 'bg-cyan-500 rounded-xl' : ''}`}
+            onClick={() => changeTimerType('shortBreak')}
           >
             Short Break
           </div>
           <div 
-            className={`p-2 rounded cursor-pointer ${timerType === 'longBreak' ? 'bg-rose-500 bg-opacity-70 rounded-2xl' : ''}`}
-            onClick={() => resetTimer('longBreak')}
+            className={`px-4 py-2 rounded cursor-pointer ${timerType === 'longBreak' ? 'bg-rose-500 rounded-xl' : ''}`}
+            onClick={() => changeTimerType('longBreak')}
           >
             Long Break
           </div>
@@ -158,43 +173,21 @@ export default function Pomodoro() {
 
       {/* Main content */}
       <div className="rounded-xl p-8 shadow-lg mb-8 w-full max-w-md">
-        <h1 className="text-3xl sm:text-4xl font-extrabold italic mb-4 text-white text-center">Pomodoro Timer</h1>
         <div className="space-x-4 flex justify-center items-center mb-4">
           <button
             className="bg-white text-indigo-900 hover:text-white rounded-3xl text-2xl hover:bg-transparent hover:border-white border-2 border-transparent font-bold py-1 w-[130px] transition-all duration-300"
-            onClick={() => setIsRunning(!isRunning)}
+            onClick={toggleTimer}
           >
             {isRunning ? 'pause' : 'start'}
           </button>
           <button
             className="text-white hover:text-gray-200 p-2"
-            onClick={() => resetTimer(timerType)}
+            onClick={resetTimer}
           >
             <MdRestartAlt className="h-12 w-12" />
           </button>
         </div>
-        <AudioControl isRunning={isRunning} timerEnded={timerEnded} />
-      </div>
-
-      {/* Test notification and permission buttons */}
-      <div className="mt-4 space-y-2">
-        <button
-          onClick={sendTestNotification}
-          className="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded w-full"
-        >
-          Send Test Notification
-        </button>
-        <button 
-          onClick={requestNotificationPermission} 
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full"
-        >
-          Request Notification Permission
-        </button>
-      </div>
-
-      {/* Notification permission status */}
-      <div className="mt-4 text-white">
-        <p>Notification Permission: {notificationPermission}</p>
+        {timerType === 'pomodoro' && <AudioControl isRunning={isRunning} timerEnded={timerEnded} />}
       </div>
     </div>
   );
