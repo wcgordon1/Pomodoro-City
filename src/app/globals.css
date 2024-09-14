@@ -5,7 +5,6 @@
 :root {
   --background: #11244f;
   --foreground: #171717;
-  --font-saira-stencil-one: 'Saira Stencil One', sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -18,7 +17,7 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-black-ops-one), sans-serif;
 }
 
 @layer utilities {
@@ -27,20 +26,10 @@ body {
   }
 }
 
-/* Old-school clock styles */
-@font-face {
-  font-family: 'Digital';
-  src: url('/fonts/digital-7.ttf') format('truetype');
-}
-
-.oldschool-clock {
-  background-color: #000;
-  border: 2px solid #333;
-  box-shadow: 0 0 10px white;
-}
+/* Remove the @font-face for 'Digital' */
 
 .oldschool-digits {
-  font-family: 'Digital', monospace;
+  font-family: monospace; /* Fallback to a standard monospace font */
   color: white;
   text-shadow: 0 0 8px white;
   letter-spacing: -0.1rem;

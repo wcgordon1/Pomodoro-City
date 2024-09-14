@@ -1,16 +1,11 @@
 import './globals.css'
-import { Audiowide, Saira_Stencil_One } from 'next/font/google'
+import { Black_Ops_One } from 'next/font/google'
 
-const audiowide = Audiowide({
+const blackOpsOne = Black_Ops_One({
   weight: '400',
   subsets: ['latin'],
   display: 'swap',
-})
-
-const sairaStencilOne = Saira_Stencil_One({
-  weight: '400',
-  subsets: ['latin'],
-  display: 'swap',
+  variable: '--font-black-ops-one',
 })
 
 export const metadata = {
@@ -20,15 +15,11 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${audiowide.className} ${sairaStencilOne.variable}`}>
+    <html lang="en" className={blackOpsOne.variable}>
       <head>
-        <style>{`
-          h1 {
-            font-family: var(--font-saira-stencil-one);
-          }
-        `}</style>
+        <link rel="preload" as="image" href="/images/night.webp" />
       </head>
-      <body>{children}</body>
+      <body className={blackOpsOne.className}>{children}</body>
     </html>
   )
 }

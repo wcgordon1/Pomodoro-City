@@ -8,17 +8,21 @@ const tracks = [
   { id: 1, src: '/sounds/Dreaming.mp3' },
   { id: 2, src: '/sounds/Lost.mp3' },
   { id: 3, src: '/sounds/Magenta.mp3' },
-  { id: 4, src: '/sounds/Mississippi.mp3' },
+  { id: 4, src: '/sounds/Smooth.mp3' },
+  { id: 5, src: '/sounds/Mississippi.mp3' },
+  { id: 6, src: '/sounds/Last.mp3' },
 ];
 
 export default function AudioControl({ isRunning, timerEnded }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrack, setCurrentTrack] = useState(0);
   const soundRef = useRef(null);
+  const [tracksLoaded, setTracksLoaded] = useState([false, false, false, false, false, false]);
 
   useEffect(() => {
     Howler.volume(0.5);
-    loadTrack(currentTrack);
+    // Load only the first track initially
+    loadTrack(0);
 
     return () => {
       if (soundRef.current) {
@@ -36,18 +40,32 @@ export default function AudioControl({ isRunning, timerEnded }) {
   }, [isRunning]);
 
   const loadTrack = (trackIndex) => {
-    if (soundRef.current) {
-      soundRef.current.unload();
+    if (!tracksLoaded[trackIndex]) {
+      if (soundRef.current) {
+        soundRef.current.unload();
+      }
+      soundRef.current = new Howl({
+        src: [tracks[trackIndex].src],
+        html5: true,
+        onload: () => {
+          setTracksLoaded(prev => {
+            const newLoaded = [...prev];
+            newLoaded[trackIndex] = true;
+            return newLoaded;
+          });
+        },
+        onend: () => {
+          if (isRunning) {
+            handleNextTrack();
+          }
+        },
+      });
+      setTracksLoaded(prev => {
+        const newLoaded = [...prev];
+        newLoaded[trackIndex] = true;
+        return newLoaded;
+      });
     }
-    soundRef.current = new Howl({
-      src: [tracks[trackIndex].src],
-      html5: true,
-      onend: () => {
-        if (isRunning) {
-          handleNextTrack();
-        }
-      },
-    });
   };
 
   const handlePlay = () => {
@@ -92,17 +110,17 @@ export default function AudioControl({ isRunning, timerEnded }) {
   return (
     <div className="flex flex-col items-center space-y-4">
       <div className="flex justify-center space-x-8">
-        <div className="p-[4px] rounded-lg bg-gradient-to-t from-blue-500 to-cyan-500">
+        <div className="p-[8px] rounded-lg bg-transparent border border-white">
           <BackwardIcon className="h-6 w-6 text-sky-100 cursor-pointer" onClick={handlePreviousTrack} />
         </div>
-        <div className="p-[4px] rounded-lg bg-gradient-to-t from-blue-500 to-cyan-500">
+        <div className="p-[8px] rounded-lg bg-transparent border border-white">
           {isPlaying ? (
             <PauseIcon className="h-6 w-6 text-sky-100 cursor-pointer" onClick={handlePause} />
           ) : (
             <PlayIcon className="h-6 w-6 text-sky-100 cursor-pointer" onClick={handlePlay} />
           )}
         </div>
-        <div className="p-[4px] rounded-lg bg-gradient-to-t from-blue-500 to-cyan-500">
+        <div className="p-[8px] rounded-lg bg-transparent border border-white">
           <ForwardIcon className="h-6 w-6 text-sky-100 cursor-pointer" onClick={handleNextTrack} />
         </div>
       </div>
